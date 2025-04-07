@@ -64,7 +64,7 @@ class SparseFeat2Render(StandardDatasetBase):
         extrinsics = torch.inverse(c2w)
 
         image_path = os.path.join(
-            "/trellis-data/renders", instance, "Color_" + metadata["file_path"]
+            "/trellis-data-renders/renders", instance, "Color_" + metadata["file_path"]
         )
         image = Image.open(image_path)
         image = image.resize(
