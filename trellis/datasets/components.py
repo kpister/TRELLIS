@@ -54,8 +54,15 @@ class StandardDatasetBase(Dataset):
         return len(self.instances)
 
     def __getitem__(self, index) -> Dict[str, Any]:
-        root, instance = self.instances[index]
-        return self.get_instance(root, instance)
+        try:
+            root, instance = self.instances[index]
+            return self.get_instance(root, instance)
+        except Exception as e:
+            print(e)
+            root, instance = self.instances[
+                np.random.randint(0, len(self.instances) - 1)
+            ]
+            return self.get_instance(root, instance)
 
     def __str__(self):
         lines = []
@@ -145,4 +152,3 @@ class ImageConditionedMixin:
         pack["cond"] = image
 
         return pack
-

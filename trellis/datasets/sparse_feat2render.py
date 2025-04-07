@@ -48,7 +48,9 @@ class SparseFeat2Render(StandardDatasetBase):
         return metadata, stats
 
     def _get_image(self, root, instance):
-        with open(os.path.join("/features", instance, "transforms.json")) as f:
+        with open(
+            os.path.join("/trellis-data/features", instance, "transforms.json")
+        ) as f:
             metadata = json.load(f)
         n_views = len(metadata["frames"])
         view = np.random.randint(n_views)
@@ -62,7 +64,7 @@ class SparseFeat2Render(StandardDatasetBase):
         extrinsics = torch.inverse(c2w)
 
         image_path = os.path.join(
-            "/renders", instance, "Color_" + metadata["file_path"]
+            "/trellis-data/renders", instance, "Color_" + metadata["file_path"]
         )
         image = Image.open(image_path)
         image = image.resize(
@@ -82,7 +84,7 @@ class SparseFeat2Render(StandardDatasetBase):
 
     def _get_feat(self, root, instance):
         DATA_RESOLUTION = 64
-        feats_path = os.path.join("/features", instance, "features.npz")
+        feats_path = os.path.join("/trellis-data/features", instance, "features.npz")
         feats = np.load(feats_path, allow_pickle=True)
         coords = torch.tensor(feats["indices"]).int()
         feats = torch.tensor(feats["patchtokens"]).float()
