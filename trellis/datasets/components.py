@@ -59,10 +59,8 @@ class StandardDatasetBase(Dataset):
             return self.get_instance(root, instance)
         except Exception as e:
             print(e)
-            root, instance = self.instances[
-                np.random.randint(0, len(self.instances) - 1)
-            ]
-            return self.get_instance(root, instance)
+            idx = np.random.randint(0, len(self.instances) - 1)
+            return self.__getitem__(idx)
 
     def __str__(self):
         lines = []
