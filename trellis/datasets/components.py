@@ -17,10 +17,7 @@ class StandardDatasetBase(Dataset):
         roots (str): paths to the dataset
     """
 
-    def __init__(
-        self,
-        roots: str,
-    ):
+    def __init__(self, roots: str):
         super().__init__()
         self.roots = roots.split(",")
         self.instances = []
@@ -30,12 +27,12 @@ class StandardDatasetBase(Dataset):
         for root in self.roots:
             key = os.path.basename(root)
             self._stats[key] = {}
-            metadata = pd.read_csv(os.path.join(root, "metadata.csv"))
+            metadata = pd.read_csv(os.path.join(root, "features_triposf_16.csv"))
             self._stats[key]["Total"] = len(metadata)
             metadata, stats = self.filter_metadata(metadata)
             self._stats[key].update(stats)
             self.instances.extend(
-                [(root, sha256) for sha256 in metadata["sha256"].values]
+                [(root, sha256) for sha256 in metadata["model_ids"].values]
             )
             metadata.set_index("sha256", inplace=True)
             self.metadata = pd.concat([self.metadata, metadata])
@@ -102,14 +99,14 @@ class ImageConditionedMixin:
 
     def filter_metadata(self, metadata):
         metadata, stats = super().filter_metadata(metadata)
-        metadata = metadata[metadata["cond_rendered"]]
-        stats["Cond rendered"] = len(metadata)
+        # metadata = metadata[metadata["cond_rendered"]]
+        # stats["Cond rendered"] = len(metadata)
         return metadata, stats
 
     def get_instance(self, root, instance):
         pack = super().get_instance(root, instance)
 
-        image_root = os.path.join(root, "renders_cond", instance)
+        image_root = os.path.join("/renders", instance)
         with open(os.path.join(image_root, "transforms.json")) as f:
             metadata = json.load(f)
         n_views = len(metadata["frames"])
