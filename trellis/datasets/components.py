@@ -107,7 +107,7 @@ class ImageConditionedMixin:
         pack = super().get_instance(root, instance)
 
         image_root = os.path.join("/renders", str(instance))
-        with open(os.path.join(image_root, "transforms.json")) as f:
+        with open(os.path.join("/latents", str(instance), "transforms.json")) as f:
             metadata = json.load(f)
         n_views = len(metadata["frames"])
         view = np.random.randint(n_views)
