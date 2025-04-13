@@ -32,9 +32,9 @@ class StandardDatasetBase(Dataset):
             metadata, stats = self.filter_metadata(metadata)
             self._stats[key].update(stats)
             self.instances.extend(
-                [(root, sha256) for sha256 in metadata["model_ids"].values]
+                [(root, sha256) for sha256 in metadata["model_id"].values]
             )
-            metadata.set_index("sha256", inplace=True)
+            metadata.set_index("model_id", inplace=True)
             self.metadata = pd.concat([self.metadata, metadata])
 
     @abstractmethod
