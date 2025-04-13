@@ -157,9 +157,9 @@ class SLat(SLatVisMixin, StandardDatasetBase):
             slat_dec_ckpt=slat_dec_ckpt,
         )
 
-        self.loads = [
-            self.metadata.loc[sha256, "num_voxels"] for _, sha256 in self.instances
-        ]
+        # self.loads = [
+        #     self.metadata.loc[sha256, "num_voxels"] for _, sha256 in self.instances
+        # ]
 
         if self.normalization is not None:
             self.mean = torch.tensor(self.normalization["mean"]).reshape(1, -1)
@@ -171,7 +171,7 @@ class SLat(SLatVisMixin, StandardDatasetBase):
         # stats["With latent"] = len(metadata)
         # metadata = metadata[metadata["aesthetic_score"] >= self.min_aesthetic_score]
         # stats[f"Aesthetic score >= {self.min_aesthetic_score}"] = len(metadata)
-        metadata = metadata[metadata["num_voxels"] <= self.max_num_voxels]
+        # metadata = metadata[metadata["num_voxels"] <= self.max_num_voxels]
         stats[f"Num voxels <= {self.max_num_voxels}"] = len(metadata)
         return metadata, stats
 
