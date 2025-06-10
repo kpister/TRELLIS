@@ -130,13 +130,44 @@ if __name__ == '__main__':
             loader_executor.map(loader, sha256s)
             
             def saver(sha256, pack, patchtokens, uv):
-                pack['patchtokens'] = F.grid_sample(
+                # sample patch tokens at projected voxel locations for every view
+                sampled = F.grid_sample(
                     patchtokens,
                     uv.unsqueeze(1),
                     mode='bilinear',
                     align_corners=False,
-                ).squeeze(2).permute(0, 2, 1).cpu().numpy()
-                pack['patchtokens'] = np.mean(pack['patchtokens'], axis=0).astype(np.float16)
+                ).squeeze(2).permute(0, 2, 1).cpu().numpy()  # (V, N, C)
+
+                # average features over all views
+                avg_features = sampled.mean(axis=0)
+                pack['patchtokens'] = avg_features.astype(np.float16)
+
+                # compute per-view error between averaged feature and original view feature
+                diff = sampled - avg_features[None, :, :]
+                view_error = np.sqrt(np.mean(diff ** 2, axis=2))  # (V, N)
+                pack['view_error'] = view_error.astype(np.float16)
+
+                # generate per-view error maps and save as grayscale images
+                uv_np = uv.cpu().numpy()
+                grid = ((uv_np + 1) * 0.5 * (n_patch - 1)).round().astype(np.int32)
+                grid[..., 0] = np.clip(grid[..., 0], 0, n_patch - 1)
+                grid[..., 1] = np.clip(grid[..., 1], 0, n_patch - 1)
+                diff_imgs = np.zeros((view_error.shape[0], n_patch, n_patch), dtype=np.float32)
+                counts = np.zeros_like(diff_imgs)
+                for v in range(view_error.shape[0]):
+                    np.add.at(diff_imgs[v], (grid[v, :, 1], grid[v, :, 0]), view_error[v])
+                    np.add.at(counts[v], (grid[v, :, 1], grid[v, :, 0]), 1)
+                diff_imgs = diff_imgs / np.maximum(counts, 1)
+                norm = diff_imgs - diff_imgs.min()
+                if norm.max() > 0:
+                    norm = norm / norm.max()
+                diff_imgs = (norm * 255).astype(np.uint8)
+                diff_dir = os.path.join(opt.output_dir, 'features', feature_name, sha256, 'diff')
+                os.makedirs(diff_dir, exist_ok=True)
+                for i, img in enumerate(diff_imgs):
+                    Image.fromarray(img, mode='L').resize((518, 518), Image.NEAREST).save(
+                        os.path.join(diff_dir, f'{i:04d}.png'))
+
                 save_path = os.path.join(opt.output_dir, 'features', feature_name, f'{sha256}.npz')
                 np.savez_compressed(save_path, **pack)
                 records.append({'sha256': sha256, f'feature_{feature_name}' : True})
