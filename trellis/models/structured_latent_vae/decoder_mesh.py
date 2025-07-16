@@ -103,8 +103,10 @@ class SLatMeshDecoder(SparseTransformerBase):
         )
         self.resolution = resolution
         self.rep_config = representation_config
-        self.mesh_extractor = SparseFeatures2Mesh(res=self.resolution*4, use_color=self.rep_config.get('use_color', False))
-        self.out_channels = self.mesh_extractor.feats_channels
+        if self.rep_config.get("use_color", False):
+            self.out_channels = 101
+        else:
+            self.out_channels = 53
         self.upsample = nn.ModuleList([
             SparseSubdivideBlock3d(
                 channels=model_channels,
@@ -122,6 +124,9 @@ class SLatMeshDecoder(SparseTransformerBase):
         self.initialize_weights()
         if use_fp16:
             self.convert_to_fp16()
+
+    def init_mesh_extractor(self):
+        self.mesh_extractor = SparseFeatures2Mesh(res=self.resolution*4, use_color=self.rep_config.get('use_color', False))
 
     def initialize_weights(self) -> None:
         super().initialize_weights()
