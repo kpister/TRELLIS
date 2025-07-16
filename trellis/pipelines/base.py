@@ -23,25 +23,15 @@ class Pipeline:
         """
         Load a pretrained model.
         """
-        import os
         import json
-        is_local = os.path.exists(f"{path}/pipeline.json")
-
-        if is_local:
-            config_file = f"{path}/pipeline.json"
-        else:
-            from huggingface_hub import hf_hub_download
-            config_file = hf_hub_download(path, "pipeline.json")
+        config_file = f"{path}/pipeline.json"
 
         with open(config_file, 'r') as f:
             args = json.load(f)['args']
 
         _models = {}
         for k, v in args['models'].items():
-            try:
-                _models[k] = models.from_pretrained(f"{path}/{v}")
-            except:
-                _models[k] = models.from_pretrained(v)
+            _models[k] = models.from_pretrained(f"{path}/{v}")
 
         new_pipeline = Pipeline(_models)
         new_pipeline._pretrained_args = args
